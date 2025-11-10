@@ -180,6 +180,38 @@ fun PokemonDetailContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // BOTÃO ADICIONAR AO TIME
+            Button(
+                onClick = { /* Sem funcionalidade por enquanto */ },
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(56.dp)
+                    .shadow(8.dp, RoundedCornerShape(28.dp)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = primaryColor
+                ),
+                shape = RoundedCornerShape(28.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "⭐",
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        "Adicionar ao Time",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Card de informações
             Card(
                 modifier = Modifier
@@ -247,27 +279,34 @@ fun PokemonDetailContent(
 @Composable
 fun InfoCard(icon: String, label: String, value: String) {
     Card(
-        modifier = Modifier.size(width = 140.dp, height = 80.dp),
+        modifier = Modifier.size(width = 150.dp, height = 90.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(icon, fontSize = 24.sp)
+            Text(
+                icon,
+                fontSize = 28.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
             Text(
                 label,
                 fontSize = 12.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                fontWeight = FontWeight.Medium
             )
             Text(
                 value,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF2C2C2C)
             )
         }
     }

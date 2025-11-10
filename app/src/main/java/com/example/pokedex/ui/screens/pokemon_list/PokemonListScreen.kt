@@ -12,12 +12,16 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -37,29 +41,111 @@ fun PokemonListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val gridState = rememberLazyGridState()
+    var searchQuery by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            "Pokédex",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 28.sp,
-                            color = Color.White
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFFDC0A2D),
+                                Color(0xFFB3051F)
+                            )
                         )
-                        Text(
-                            "Explore todos os Pokémon",
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
+                    )
+                    .padding(20.dp)
+            ) {
+                // HEADER
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Pokébola ícone
+                        Box(
+                            modifier = Modifier
+                                .size(45.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.3f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "⚪",
+                                fontSize = 28.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column {
+                            Text(
+                                "Pokédex",
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                "",
+                                fontSize = 12.sp,
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontWeight = FontWeight.Medium,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                            )
+                        }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFDC0A2D)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // BARRA DE PESQUISA
+                TextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(4.dp, RoundedCornerShape(16.dp)),
+                    placeholder = {
+                        Text(
+                            "Buscar Pokémon...",
+                            color = Color.Gray.copy(alpha = 0.6f)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Buscar",
+                            tint = Color(0xFFDC0A2D)
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    Icons.Default.Clear,
+                                    contentDescription = "Limpar",
+                                    tint = Color.Gray
+                                )
+                            }
+                        }
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        disabledContainerColor = Color.White,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        cursorColor = Color(0xFFDC0A2D)
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true
                 )
-            )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -93,24 +179,61 @@ fun PokemonListScreen(
                     }
                 }
                 is PokemonListUiState.Success -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        state = gridState,
-                        contentPadding = PaddingValues(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(state.pokemonList) { pokemon ->
-                            PokemonGridItem(
-                                pokemon = pokemon,
-                                onClick = { onPokemonClick(pokemon.id) }
+                    // FILTRO DE PESQUISA
+                    val filteredPokemon = if (searchQuery.isEmpty()) {
+                        state.pokemonList
+                    } else {
+                        state.pokemonList.filter { pokemon ->
+                            pokemon.name.contains(searchQuery, ignoreCase = true) ||
+                                    pokemon.id.toString().contains(searchQuery)
+                        }
+                    }
+
+                    if (filteredPokemon.isEmpty()) {
+                        // Nenhum resultado encontrado
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "🔍",
+                                fontSize = 64.sp
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Nenhum Pokémon encontrado",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                            Text(
+                                "Tente buscar por nome ou número",
+                                fontSize = 14.sp,
+                                color = Color.Gray.copy(alpha = 0.7f)
                             )
                         }
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            state = gridState,
+                            contentPadding = PaddingValues(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(filteredPokemon) { pokemon ->
+                                PokemonGridItem(
+                                    pokemon = pokemon,
+                                    onClick = { onPokemonClick(pokemon.id) }
+                                )
+                            }
 
-                        // Carrega mais quando chega ao final
-                        item {
-                            LaunchedEffect(Unit) {
-                                viewModel.loadMore()
+                            // Carrega mais quando chega ao final (só se não está pesquisando)
+                            if (searchQuery.isEmpty()) {
+                                item {
+                                    LaunchedEffect(Unit) {
+                                        viewModel.loadMore()
+                                    }
+                                }
                             }
                         }
                     }
@@ -272,7 +395,7 @@ fun getTypeColor(type: String): Color {
         "fighting" -> Color(0xFFCE4069)
         "flying" -> Color(0xFF8FA8DD)
         "poison" -> Color(0xFFAB6AC8)
-        "ground" -> Color(0xFDD87040)
+        "ground" -> Color(0xFFDD87040)
         "rock" -> Color(0xFFC7B78B)
         "bug" -> Color(0xFF90C12C)
         "ghost" -> Color(0xFF5269AC)
