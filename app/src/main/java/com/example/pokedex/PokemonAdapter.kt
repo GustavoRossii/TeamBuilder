@@ -28,7 +28,6 @@ class PokemonAdapter(private val pokemons: List<Pokemon>) :
         holder.tvNumero.text = "#${String.format("%03d", pokemon.numero)}"
         holder.tvNome.text = pokemon.nome
         holder.tvTipo.text = pokemon.tipo
-        // Por enquanto sem imagem - vamos adicionar depois
     }
 
     override fun getItemCount() = pokemons.size

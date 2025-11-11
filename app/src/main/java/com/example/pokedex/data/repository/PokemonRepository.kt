@@ -77,6 +77,8 @@ class PokemonRepository @Inject constructor(
             weight = this.weight,
             hp = this.stats.find { it.stat.name == "hp" }?.base_stat ?: 0,
             attack = this.stats.find { it.stat.name == "attack" }?.base_stat ?: 0,
+            specialAttack = this.stats.find { it.stat.name == "special-attack" }?.base_stat ?: 0,
+            specialDefense = this.stats.find { it.stat.name == "special-defense" }?.base_stat ?: 0,
             defense = this.stats.find { it.stat.name == "defense" }?.base_stat ?: 0,
             speed = this.stats.find { it.stat.name == "speed" }?.base_stat ?: 0
         )
@@ -96,6 +98,8 @@ class PokemonRepository @Inject constructor(
             weight = this.weight,
             hp = this.hp,
             attack = this.attack,
+            specialAttack = this.specialAttack,
+            specialDefense = this.specialDefense,
             defense = this.defense,
             speed = this.speed
         )

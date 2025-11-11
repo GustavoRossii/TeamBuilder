@@ -266,6 +266,8 @@ fun PokemonDetailContent(
 
                     AnimatedStatBar("HP", pokemon.hp, Color(0xFFFF5959))
                     AnimatedStatBar("Ataque", pokemon.attack, Color(0xFFF08030))
+                    AnimatedStatBar("Ataque Especial", pokemon.specialAttack, Color(0xFF58ABF6))
+                    AnimatedStatBar("Defesa Especial", pokemon.specialDefense, Color(0xFF78C850))
                     AnimatedStatBar("Defesa", pokemon.defense, Color(0xFFF8D030))
                     AnimatedStatBar("Velocidade", pokemon.speed, Color(0xFF78C850))
                 }

@@ -36,7 +36,9 @@ object AppModule {
             context,
             PokedexDatabase::class.java,
             "pokedex_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
