@@ -20,7 +20,7 @@ class PokemonListViewModel @Inject constructor(
     val uiState: StateFlow<PokemonListUiState> = _uiState.asStateFlow()
 
     private var currentOffset = 0
-    private val pageSize = 20
+    private val pageSize = 10009
 
     init {
         loadPokemon()
