@@ -19,11 +19,12 @@ class PokemonListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<PokemonListUiState>(PokemonListUiState.Loading)
     val uiState: StateFlow<PokemonListUiState> = _uiState.asStateFlow()
 
-    private var currentOffset = 0
-    private val pageSize = 10009
+    private var isInitialLoadDone = false
+    private var isLoadingDetails = false
+    private val detailsBatchSize = 20
 
     init {
-        loadPokemon()
+        loadInitialData()
         observePokemon()
     }
 
@@ -32,32 +33,63 @@ class PokemonListViewModel @Inject constructor(
             repository.getAllPokemon().collect { pokemonList ->
                 if (pokemonList.isNotEmpty()) {
                     _uiState.value = PokemonListUiState.Success(pokemonList)
+                    
+                    // Pré-carrega detalhes em background se ainda não carregou
+                    if (!isInitialLoadDone && !isLoadingDetails) {
+                        preloadDetails()
+                    }
                 }
             }
         }
     }
 
-    fun loadPokemon() {
+    private fun loadInitialData() {
         viewModelScope.launch {
             _uiState.value = PokemonListUiState.Loading
             try {
-                repository.loadPokemonList(offset = currentOffset, limit = pageSize)
-                currentOffset += pageSize
+                // Carrega lista básica rapidamente
+                repository.loadBasicPokemonList()
+                isInitialLoadDone = true
+                
+                // Carrega primeiros detalhes
+                repository.loadPokemonDetails(detailsBatchSize)
             } catch (e: Exception) {
-                _uiState.value = PokemonListUiState.Error(e.message ?: "Erro desconhecido")
+                _uiState.value = PokemonListUiState.Error(e.message ?: "Erro ao carregar pokémons")
+            }
+        }
+    }
+
+    private fun preloadDetails() {
+        viewModelScope.launch {
+            if (isLoadingDetails) return@launch
+            isLoadingDetails = true
+            
+            try {
+                // Carrega mais detalhes em background
+                repository.loadPokemonDetails(detailsBatchSize)
+            } catch (e: Exception) {
+                // Ignora erros silenciosamente
+            } finally {
+                isLoadingDetails = false
             }
         }
     }
 
     fun loadMore() {
-        viewModelScope.launch {
-            try {
-                repository.loadPokemonList(offset = currentOffset, limit = pageSize)
-                currentOffset += pageSize
-            } catch (e: Exception) {
-                // Silenciosamente falha se não conseguir carregar mais
-            }
+        // Carrega mais detalhes quando o usuário rola
+        if (!isLoadingDetails) {
+            preloadDetails()
         }
+    }
+
+    fun reload() {
+        // Recarrega os dados iniciais
+        isInitialLoadDone = false
+        loadInitialData()
+    }
+
+    suspend fun searchPokemon(query: String): List<com.example.pokedex.domain.model.Pokemon> {
+        return repository.searchPokemon(query)
     }
 }
 

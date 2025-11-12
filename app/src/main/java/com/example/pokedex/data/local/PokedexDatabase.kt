@@ -9,7 +9,7 @@ import com.example.pokedex.data.local.entities.TeamMemberEntity
 
 @Database(
     entities = [PokemonEntity::class, TeamMemberEntity::class],
-    version = 3,  // ← AUMENTOU PARA 3
+    version = 4,  // aumentado para 4 (adicionado campo hasDetails)
     exportSchema = false
 )
 abstract class PokedexDatabase : RoomDatabase() {

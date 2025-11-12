@@ -39,7 +39,76 @@ class PokemonRepository @Inject constructor(
         }
     }
 
-    // Carrega lista de Pokémon da API e salva no cache
+    // Carrega lista básica (nome + id) de todos os pokémons rapidamente
+    suspend fun loadBasicPokemonList() {
+        try {
+            // Busca todos os pokémons da API (sem detalhes)
+            val response = api.getPokemonList(offset = 0, limit = 10000)
+            
+            // Cria entidades básicas (sem detalhes)
+            val basicPokemonList = response.results.mapNotNull { item ->
+                try {
+                    val id = item.url.trimEnd('/').split("/").last().toInt()
+                    // Cria entidade básica (imageUrl será gerado do GitHub no toDomainModel)
+                    PokemonEntity(
+                        id = id,
+                        name = item.name.replaceFirstChar { it.uppercase() },
+                        imageUrl = "", // não precisa, sempre usa GitHub
+                        hasDetails = false
+                    )
+                } catch (e: Exception) {
+                    null
+                }
+            }
+
+            // Salva todos no banco (só atualiza se não existir)
+            dao.insertAllPokemon(basicPokemonList)
+        } catch (e: Exception) {
+            // Erro ao carregar da API
+        }
+    }
+
+    // Carrega detalhes de um lote de pokémons
+    suspend fun loadPokemonDetails(limit: Int = 20) {
+        try {
+            val pokemonWithoutDetails = dao.getPokemonWithoutDetails(limit)
+
+            pokemonWithoutDetails.forEach { basicPokemon ->
+                try {
+                    val detail = api.getPokemonDetail(basicPokemon.id)
+                    val fullEntity = detail.toEntity()
+                    dao.insertPokemon(fullEntity)
+                } catch (e: Exception) {
+                    // Ignora erros individuais
+                }
+            }
+        } catch (e: Exception) {
+            // Erro ao carregar detalhes
+        }
+    }
+
+    // Busca pokémon por nome (primeiro no cache, depois na API)
+    suspend fun searchPokemon(query: String): List<Pokemon> {
+        val queryInt = query.toIntOrNull() ?: -1
+
+        // Busca no cache local
+        val cached = dao.searchPokemon(query, queryInt)
+        if (cached.isNotEmpty()) {
+            return cached.map { it.toDomainModel() }
+        }
+
+        // Se não encontrou no cache, tenta buscar na API pelo nome
+        return try {
+            val dto = api.getPokemonDetailByName(query.lowercase())
+            val entity = dto.toEntity()
+            dao.insertPokemon(entity)
+            listOf(entity.toDomainModel())
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    // Carrega lista de Pokémon da API e salva no cache (método antigo mantido para compatibilidade)
     suspend fun loadPokemonList(offset: Int = 0, limit: Int = 20) {
         try {
             val response = api.getPokemonList(offset, limit)
@@ -80,7 +149,8 @@ class PokemonRepository @Inject constructor(
             specialAttack = this.stats.find { it.stat.name == "special-attack" }?.base_stat ?: 0,
             specialDefense = this.stats.find { it.stat.name == "special-defense" }?.base_stat ?: 0,
             defense = this.stats.find { it.stat.name == "defense" }?.base_stat ?: 0,
-            speed = this.stats.find { it.stat.name == "speed" }?.base_stat ?: 0
+            speed = this.stats.find { it.stat.name == "speed" }?.base_stat ?: 0,
+            hasDetails = true
         )
     }
 
@@ -89,10 +159,12 @@ class PokemonRepository @Inject constructor(
         val types = mutableListOf(type1)
         type2?.let { types.add(it) }
 
+        val finalImageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png"
+
         return Pokemon(
             id = this.id,
             name = this.name,
-            imageUrl = this.imageUrl,
+            imageUrl = finalImageUrl,
             types = types,
             height = this.height,
             weight = this.weight,

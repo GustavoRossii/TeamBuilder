@@ -42,6 +42,8 @@ fun PokemonListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val gridState = rememberLazyGridState()
     var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<Pokemon>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -90,7 +92,7 @@ fun PokemonListScreen(
                                 letterSpacing = 0.5.sp
                             )
                             Text(
-                                "",
+                                "Explore todos os pokémons",
                                 fontSize = 12.sp,
                                 color = Color.White.copy(alpha = 0.85f),
                                 fontWeight = FontWeight.Medium,
@@ -183,13 +185,43 @@ fun PokemonListScreen(
                     val filteredPokemon = if (searchQuery.isEmpty()) {
                         state.pokemonList
                     } else {
-                        state.pokemonList.filter { pokemon ->
-                            pokemon.name.contains(searchQuery, ignoreCase = true) ||
-                                    pokemon.id.toString().contains(searchQuery)
+                        // Se tem resultados de busca, usa eles; senão filtra do cache
+                        searchResults.ifEmpty {
+                            state.pokemonList.filter { pokemon ->
+                                pokemon.name.contains(searchQuery, ignoreCase = true) ||
+                                        pokemon.id.toString().contains(searchQuery)
+                            }
+                        }
+                    }
+                    
+                    // Busca inteligente quando o usuário digita
+                    LaunchedEffect(searchQuery) {
+                        if (searchQuery.isNotEmpty() && searchQuery.length >= 2) {
+                            isSearching = true
+                            kotlinx.coroutines.delay(300) // debounce de 300ms para evitar muitas buscas
+                            searchResults = viewModel.searchPokemon(searchQuery)
+                            isSearching = false
+                        } else {
+                            searchResults = emptyList()
+                            isSearching = false
                         }
                     }
 
-                    if (filteredPokemon.isEmpty()) {
+                    if (isSearching) {
+                        // Mostra loading durante busca
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFFDC0A2D))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Buscando...",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        }
+                    } else if (filteredPokemon.isEmpty()) {
                         // Nenhum resultado encontrado
                         Column(
                             modifier = Modifier.align(Alignment.Center),
@@ -255,7 +287,7 @@ fun PokemonListScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = { viewModel.loadPokemon() },
+                            onClick = { viewModel.reload() },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFFDC0A2D)
                             )
@@ -339,7 +371,7 @@ fun PokemonGridItem(
                 )
 
                 // Tipos
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     pokemon.types.take(2).forEach { type ->
                         Surface(
                             color = Color.White.copy(alpha = 0.3f),
@@ -395,7 +427,7 @@ fun getTypeColor(type: String): Color {
         "fighting" -> Color(0xFFCE4069)
         "flying" -> Color(0xFF8FA8DD)
         "poison" -> Color(0xFFAB6AC8)
-        "ground" -> Color(0xFFDD87040)
+        "ground" -> Color(0xFFD87040)
         "rock" -> Color(0xFFC7B78B)
         "bug" -> Color(0xFF90C12C)
         "ghost" -> Color(0xFF5269AC)
