@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -258,16 +259,8 @@ fun PokemonListScreen(
                                     onClick = { onPokemonClick(pokemon.id) }
                                 )
                             }
-
-                            // Carrega mais quando chega ao final (só se não está pesquisando)
-                            if (searchQuery.isEmpty()) {
-                                item {
-                                    LaunchedEffect(Unit) {
-                                        viewModel.loadMore()
-                                    }
-                                }
-                            }
                         }
+                        
                     }
                 }
                 is PokemonListUiState.Error -> {
@@ -371,36 +364,45 @@ fun PokemonGridItem(
                 )
 
                 // Tipos
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    pokemon.types.take(2).forEach { type ->
-                        Surface(
-                            color = Color.White.copy(alpha = 0.3f),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                text = type.replaceFirstChar { it.uppercase() },
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                color = Color.White,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                // Futuramente colocar os ícones de tipos
+                Box(
+                    modifier = Modifier
+                        .height(32.dp)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (pokemon.types.isNotEmpty()) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            pokemon.types.take(2).forEach { type ->
+                                Surface(
+                                    color = Color.White.copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text(
+                                        text = type.replaceFirstChar { it.uppercase() },
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp),
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Imagem do Pokémon
-                AsyncImage(
-                    model = pokemon.imageUrl,
-                    contentDescription = pokemon.name,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.End)
-                        .offset(x = 10.dp, y = 10.dp),
-                    contentScale = ContentScale.Fit
-                )
             }
+
+            // Imagem do Pokémon - posicionada de forma absoluta com tamanho fixo
+            // Não depende do layout da Column acima
+            AsyncImage(
+                model = pokemon.imageUrl,
+                contentDescription = pokemon.name,
+                modifier = Modifier
+                    .size(80.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = (-6).dp, y = (-6).dp),
+                contentScale = ContentScale.Fit
+            )
         }
     }
 

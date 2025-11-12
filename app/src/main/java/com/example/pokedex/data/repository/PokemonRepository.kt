@@ -6,6 +6,9 @@ import com.example.pokedex.data.remote.PokeApiService
 import com.example.pokedex.domain.model.Pokemon
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 
 class PokemonRepository @Inject constructor(
@@ -21,17 +24,23 @@ class PokemonRepository @Inject constructor(
     }
 
     // Busca Pokémon por ID (primeiro tenta cache, depois API)
+    // Se não tiver stats, carrega automaticamente
     suspend fun getPokemonById(id: Int): Pokemon? {
         // Tenta buscar do cache primeiro
         val cached = dao.getPokemonById(id)
         if (cached != null) {
+            if (!cached.hasDetails) {
+                loadPokemonStats(id)
+                val updated = dao.getPokemonById(id)
+                return updated?.toDomainModel()
+            }
             return cached.toDomainModel()
         }
 
-        // Se não tem no cache, busca da API
+        // Se não tem no cache, busca da API completa
         return try {
             val dto = api.getPokemonDetail(id)
-            val entity = dto.toEntity()
+            val entity = dto.toEntity() // versão completa com stats
             dao.insertPokemon(entity)
             entity.toDomainModel()
         } catch (e: Exception) {
@@ -39,51 +48,49 @@ class PokemonRepository @Inject constructor(
         }
     }
 
-    // Carrega lista básica (nome + id) de todos os pokémons rapidamente
     suspend fun loadBasicPokemonList() {
         try {
-            // Busca todos os pokémons da API (sem detalhes)
             val response = api.getPokemonList(offset = 0, limit = 10000)
             
-            // Cria entidades básicas (sem detalhes)
-            val basicPokemonList = response.results.mapNotNull { item ->
-                try {
-                    val id = item.url.trimEnd('/').split("/").last().toInt()
-                    // Cria entidade básica (imageUrl será gerado do GitHub no toDomainModel)
-                    PokemonEntity(
-                        id = id,
-                        name = item.name.replaceFirstChar { it.uppercase() },
-                        imageUrl = "", // não precisa, sempre usa GitHub
-                        hasDetails = false
-                    )
-                } catch (e: Exception) {
-                    null
+            // Carrega tipos de todos os pokémons em paralelo (50 por vez)
+            coroutineScope {
+                response.results.chunked(50).forEach { chunk ->
+                    val pokemonList = chunk.mapNotNull { item ->
+                        async {
+                            try {
+                                val id = item.url.trimEnd('/').split("/").last().toInt()
+                                // Busca detalhes básicos (com tipos) mas sem stats
+                                val detail = api.getPokemonDetail(id)
+                                detail.toBasicEntity()
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                    }.awaitAll().filterNotNull()
+                    
+                    dao.insertAllPokemon(pokemonList)
+                    kotlinx.coroutines.delay(10)
                 }
             }
-
-            // Salva todos no banco (só atualiza se não existir)
-            dao.insertAllPokemon(basicPokemonList)
         } catch (e: Exception) {
             // Erro ao carregar da API
         }
     }
 
-    // Carrega detalhes de um lote de pokémons
-    suspend fun loadPokemonDetails(limit: Int = 20) {
+    // Carrega estatísticas (stats) de um pokémon específico quando necessário
+    suspend fun loadPokemonStats(pokemonId: Int) {
         try {
-            val pokemonWithoutDetails = dao.getPokemonWithoutDetails(limit)
-
-            pokemonWithoutDetails.forEach { basicPokemon ->
-                try {
-                    val detail = api.getPokemonDetail(basicPokemon.id)
-                    val fullEntity = detail.toEntity()
-                    dao.insertPokemon(fullEntity)
-                } catch (e: Exception) {
-                    // Ignora erros individuais
-                }
+            val existing = dao.getPokemonById(pokemonId)
+            // Só carrega se não tiver stats ainda
+            if (existing != null && existing.hasDetails) {
+                return // já tem stats
             }
+            
+            val detail = api.getPokemonDetail(pokemonId)
+            val fullEntity = detail.toEntity() // versão completa com stats
+            dao.insertPokemon(fullEntity)
         } catch (e: Exception) {
-            // Erro ao carregar detalhes
+            // Erro ao carregar stats
         }
     }
 
@@ -132,7 +139,29 @@ class PokemonRepository @Inject constructor(
         }
     }
 
-    // Mapeia DTO para Entity
+    // Mapeia DTO para Entity básica (com tipos, mas sem stats)
+    private fun com.example.pokedex.data.remote.dto.PokemonDetailDto.toBasicEntity(): PokemonEntity {
+        val types = this.types.sortedBy { it.slot }.map { it.type.name }
+
+        return PokemonEntity(
+            id = this.id,
+            name = this.name.replaceFirstChar { it.uppercase() },
+            imageUrl = this.sprites.front_default ?: "",
+            type1 = types.getOrNull(0) ?: "unknown",
+            type2 = types.getOrNull(1),
+            height = this.height,
+            weight = this.weight,
+            hp = 0,
+            attack = 0,
+            specialAttack = 0,
+            specialDefense = 0,
+            defense = 0,
+            speed = 0,
+            hasDetails = false
+        )
+    }
+
+    // Mapeia DTO para Entity completa (com tipos E stats)
     private fun com.example.pokedex.data.remote.dto.PokemonDetailDto.toEntity(): PokemonEntity {
         val types = this.types.sortedBy { it.slot }.map { it.type.name }
 
@@ -150,14 +179,22 @@ class PokemonRepository @Inject constructor(
             specialDefense = this.stats.find { it.stat.name == "special-defense" }?.base_stat ?: 0,
             defense = this.stats.find { it.stat.name == "defense" }?.base_stat ?: 0,
             speed = this.stats.find { it.stat.name == "speed" }?.base_stat ?: 0,
-            hasDetails = true
+            hasDetails = true // indica que tem stats completos
         )
     }
 
     // Mapeia Entity para Domain Model
     private fun PokemonEntity.toDomainModel(): Pokemon {
-        val types = mutableListOf(type1)
-        type2?.let { types.add(it) }
+        // Agora sempre mostra tipos (carregados na lista básica)
+        val types = mutableListOf<String>()
+        if (type1.isNotEmpty() && type1 != "unknown") {
+            types.add(type1)
+        }
+        type2?.let { 
+            if (it.isNotEmpty() && it != "unknown") {
+                types.add(it)
+            }
+        }
 
         val finalImageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png"
 
