@@ -84,7 +84,17 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(NavRoute.TeamBuilder.route) {
-                            TeamBuilderScreen()
+                            TeamBuilderScreen(
+                                onNavigateToPokedex = {
+                                    navController.navigate(NavRoute.Pokedex.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            )
                         }
 
                         composable(

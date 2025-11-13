@@ -34,43 +34,69 @@ fun PokemonDetailScreen(
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val message by viewModel.message.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(pokemonId) {
         viewModel.loadPokemon(pokemonId)
     }
 
-    when (val state = uiState) {
-        is PokemonDetailUiState.Loading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F5))
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFFDC0A2D)
-                )
-            }
-        }
-        is PokemonDetailUiState.Success -> {
-            PokemonDetailContent(
-                pokemon = state.pokemon,
-                onBackClick = onBackClick
+    // Snackbar para mensagens
+    LaunchedEffect(message) {
+        message?.let { msg ->
+            snackbarHostState.showSnackbar(
+                message = msg,
+                duration = SnackbarDuration.Short
             )
+            viewModel.clearMessage()
         }
-        is PokemonDetailUiState.Error -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F5))
-            ) {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("😕", fontSize = 48.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(state.message, color = Color.Gray)
+    }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            when (val state = uiState) {
+                is PokemonDetailUiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F5F5))
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color(0xFFDC0A2D)
+                        )
+                    }
+                }
+                is PokemonDetailUiState.Success -> {
+                    PokemonDetailContent(
+                        pokemon = state.pokemon,
+                        onBackClick = onBackClick,
+                        onAddToTeam = { viewModel.addToTeam(state.pokemon.id) }
+                    )
+                }
+                is PokemonDetailUiState.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F5F5))
+                    ) {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("😕", fontSize = 48.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(state.message, color = Color.Gray)
+                        }
+                    }
                 }
             }
         }
@@ -81,7 +107,8 @@ fun PokemonDetailScreen(
 @Composable
 fun PokemonDetailContent(
     pokemon: Pokemon,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAddToTeam: () -> Unit
 ) {
     val primaryColor = getTypeColor(pokemon.types.firstOrNull() ?: "normal")
     val secondaryColor = primaryColor.copy(alpha = 0.6f)
@@ -182,7 +209,7 @@ fun PokemonDetailContent(
 
             // BOTÃO ADICIONAR AO TIME
             Button(
-                onClick = { /* Sem funcionalidade por enquanto */ },
+                onClick = onAddToTeam,
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .height(56.dp)
