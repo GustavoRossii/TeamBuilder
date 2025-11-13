@@ -70,7 +70,7 @@ fun TeamBuilderScreen() {
                             Text(
                                 "Team Builder",
                                 fontSize = 28.sp,
-                                fontWeight = FontWeight.Black,
+                                fontWeight = FontWeight.Bold,
                                 color = Color.White,
                                 letterSpacing = 0.5.sp
                             )
@@ -110,7 +110,8 @@ fun TeamBuilderScreen() {
                 Text(
                     text = "Team builder",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(

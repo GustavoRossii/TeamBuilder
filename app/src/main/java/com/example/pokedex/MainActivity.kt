@@ -145,12 +145,15 @@ private fun BottomNavigationBar(
     selectedRoute: String?,
     onNavigate: (String) -> Unit
 ) {
-    NavigationBar {
+    NavigationBar (
+        containerColor = Color.White
+    ) {
         listOf(NavRoute.Pokedex, NavRoute.TeamBuilder).forEach { item ->
             val selected = selectedRoute == item.route
             NavigationBarItem(
                 selected = selected,
                 onClick = { onNavigate(item.route) },
+
                 icon = {
                     Icon(
                         painter = painterResource(id = item.iconRes),

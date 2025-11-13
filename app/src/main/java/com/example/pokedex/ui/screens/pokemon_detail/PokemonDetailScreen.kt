@@ -238,14 +238,16 @@ fun PokemonDetailContent(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
                     ) {
                         InfoCard(
+                            modifier = Modifier.weight(1f),
                             icon = "⚖️",
                             label = "Peso",
                             value = "${pokemon.weight / 10.0} kg"
                         )
                         InfoCard(
+                            modifier = Modifier.weight(1f),
                             icon = "📏",
                             label = "Altura",
                             value = "${pokemon.height / 10.0} m"
@@ -279,9 +281,9 @@ fun PokemonDetailContent(
 }
 
 @Composable
-fun InfoCard(icon: String, label: String, value: String) {
+fun InfoCard(modifier: Modifier = Modifier, icon: String, label: String, value: String) {
     Card(
-        modifier = Modifier.size(width = 150.dp, height = 90.dp),
+        modifier = modifier.height(90.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(16.dp)
@@ -337,7 +339,8 @@ fun AnimatedStatBar(label: String, value: Int, color: Color) {
                 label,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.width(80.dp)
+                modifier = Modifier.width(80.dp),
+                color = Color.DarkGray
             )
 
             Text(

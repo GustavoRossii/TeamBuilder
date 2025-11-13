@@ -143,7 +143,13 @@ fun PokemonListScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
-                        cursorColor = Color(0xFFDC0A2D)
+                        cursorColor = Color(0xFFDC0A2D),
+
+                        // Cor do texto digitado (estava pegando a cor do tema)
+                        focusedTextColor = Color.Black,
+
+                        // Deixar a cor meio ofuscada quando não focado
+                        unfocusedTextColor = Color.Black.copy(alpha = 0.9f)
                     ),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true
