@@ -67,6 +67,7 @@ O projeto implementa as melhores práticas de desenvolvimento Android, incluindo
 ## Arquitetura
 
 O projeto segue a arquitetura MVVM com Clean Architecture, separado em 3 camadas principais:
+````
 ┌─────────────────────────────────────────────┐
 │            UI LAYER (Compose)               │
 │   • Screens (PokemonList, Details, Team)    │
@@ -90,6 +91,7 @@ O projeto segue a arquitetura MVVM com Clean Architecture, separado em 3 camadas
 │  • Entities              • DTOs             │
 │  • DAOs                  • API Service      │
 └─────────────────────────────────────────────┘
+````
 
 ## Estratégia de Cache
 
