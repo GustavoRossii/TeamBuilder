@@ -99,9 +99,8 @@ O projeto segue a arquitetura MVVM com Clean Architecture, separado em 3 camadas
 * **Cache Inteligente**: Reduz chamadas de rede desnecessárias.
 * **Sincronização**: Atualiza cache em segundo plano quando online.
 
-## Como Executar
+## Pré-requisitos
 
-### Pré-requisitos
 * Android Studio Hedgehog (2023.1.1) ou superior
 * JDK 17 ou superior
 * Emulador Android ou Dispositivo físico com Android 7.0+ (API 24+)
