@@ -11,13 +11,13 @@ data class PokemonEntity(
     val imageUrl: String,
     val type1: String = "normal",
     val type2: String? = null,
-    val height: Int = 0,
-    val weight: Int = 0,
+    val height: Float = 0.0f,
+    val weight: Float = 0.0f,
     val hp: Int = 0,
     val attack: Int = 0,
     val specialAttack: Int = 0,
     val specialDefense: Int = 0,
     val defense: Int = 0,
     val speed: Int = 0,
-    val hasDetails: Boolean = false // indica se tem detalhes completos carregados
+    val hasDetails: Boolean = false
 )

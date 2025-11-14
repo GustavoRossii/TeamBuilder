@@ -110,6 +110,10 @@ fun PokemonDetailContent(
     onBackClick: () -> Unit,
     onAddToTeam: () -> Unit
 ) {
+
+    // Log de debug que pode ser removido depois
+    android.util.Log.d("POKEMON_DEBUG", "Pokemon recebido pela UI: $pokemon")
+
     val primaryColor = getTypeColor(pokemon.types.firstOrNull() ?: "normal")
     val secondaryColor = primaryColor.copy(alpha = 0.6f)
 
@@ -267,15 +271,17 @@ fun PokemonDetailContent(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
                     ) {
+                        // *** ALTERAÇÃO AQUI ***
                         InfoCard(
                             modifier = Modifier.weight(1f),
-                            icon = "⚖️",
+                            // icon = "⚖️", // <-- Removido
                             label = "Peso",
                             value = "${pokemon.weight / 10.0} kg"
                         )
+                        // *** ALTERAÇÃO AQUI ***
                         InfoCard(
                             modifier = Modifier.weight(1f),
-                            icon = "📏",
+                            // icon = "📏", // <-- Removido
                             label = "Altura",
                             value = "${pokemon.height / 10.0} m"
                         )
@@ -307,10 +313,11 @@ fun PokemonDetailContent(
     }
 }
 
+// *** ALTERAÇÃO AQUI ***
 @Composable
-fun InfoCard(modifier: Modifier = Modifier, icon: String, label: String, value: String) {
+fun InfoCard(modifier: Modifier = Modifier, label: String, value: String) { // <-- Parâmetro "icon" removido
     Card(
-        modifier = modifier.height(90.dp),
+        modifier = modifier.height(90.dp), // A altura foi mantida, mas agora caberá
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(16.dp)
@@ -320,19 +327,18 @@ fun InfoCard(modifier: Modifier = Modifier, icon: String, label: String, value: 
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center // Centraliza os dois textos
         ) {
-            Text(
-                icon,
-                fontSize = 28.sp,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
+            // *** O Text(icon, ...) FOI REMOVIDO DAQUI ***
+
             Text(
                 label,
                 fontSize = 12.sp,
                 color = Color.Gray,
                 fontWeight = FontWeight.Medium
             )
+            // Adicionado um pequeno espaço
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 value,
                 fontSize = 18.sp,
