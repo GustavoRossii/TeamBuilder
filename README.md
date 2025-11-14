@@ -106,6 +106,30 @@ O projeto segue a arquitetura MVVM com Clean Architecture, separado em 3 camadas
 * Emulador Android ou Dispositivo físico com Android 7.0+ (API 24+)
 * Conexão com internet (para primeira execução)
 
+### Passos para Execução
+
+1.  **Clonar o Repositório:**
+    Abra seu terminal ou prompt de comando e execute o seguinte comando para clonar o projeto:
+    ```bash
+    git clone https://https://github.com/GustavoRossii/TeamBuilder
+    ```
+
+2.  **Abrir no Android Studio:**
+    * Abra o Android Studio.
+    * Na tela inicial, selecione **"Open"** (ou "Open an Existing Project").
+    * Navegue até a pasta onde você clonou o repositório e selecione o diretório raiz do projeto.
+
+3.  **Sincronizar o Gradle:**
+    * O Android Studio irá automaticamente detectar o projeto e começar a sincronizar os arquivos do Gradle (isso pode levar alguns minutos e requer conexão com a internet).
+    * Aguarde até que o "Gradle sync" seja concluído com sucesso.
+
+4.  **Executar o Aplicativo:**
+    * Certifique-se de que um emulador esteja rodando ou que um dispositivo físico esteja conectado (com a depuração USB ativada).
+    * Selecione o dispositivo desejado na barra de ferramentas superior.
+    * Clique no botão **"Run 'app'"** (o ícone de play verde ▶️) ou use o atalho `Shift + F10`.
+
+O aplicativo será compilado, instalado e iniciado no dispositivo/emulador selecionado.
+
 ## Participantes
 
 * Pedro Miguel Radwanski - 8132778953
