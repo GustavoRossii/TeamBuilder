@@ -111,7 +111,7 @@ O projeto segue a arquitetura MVVM com Clean Architecture, separado em 3 camadas
 1.  **Clonar o Repositório:**
     Abra seu terminal ou prompt de comando e execute o seguinte comando para clonar o projeto:
     ```bash
-    git clone https://https://github.com/GustavoRossii/TeamBuilder
+    git clone https://github.com/GustavoRossii/TeamBuilder/tree/main
     ```
 
 2.  **Abrir no Android Studio:**
