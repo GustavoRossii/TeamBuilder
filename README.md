@@ -126,7 +126,7 @@ O projeto segue a arquitetura MVVM com Clean Architecture, separado em 3 camadas
 4.  **Executar o Aplicativo:**
     * Certifique-se de que um emulador esteja rodando ou que um dispositivo físico esteja conectado (com a depuração USB ativada).
     * Selecione o dispositivo desejado na barra de ferramentas superior.
-    * Clique no botão **"Run 'app'"** (o ícone de play verde ▶️) ou use o atalho `Shift + F10`.
+    * Clique no botão **"Run 'app'"** (o ícone de play verde) ou use o atalho `Shift + F10`.
 
 O aplicativo será compilado, instalado e iniciado no dispositivo/emulador selecionado.
 
